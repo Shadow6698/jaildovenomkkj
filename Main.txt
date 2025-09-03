@@ -49,7 +49,6 @@ local listGui = Instance.new("ScreenGui", PlayerGui)
 listGui.Name = "CompactPlayerList"
 listGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- Botão "Abrir >"
 local openButton = Instance.new("TextButton")
 openButton.Size = UDim2.new(0, 30, 0, 30)
 openButton.Position = UDim2.new(0, 10, 0.5, -15)
@@ -61,7 +60,6 @@ openButton.TextScaled = true
 openButton.Parent = listGui
 Instance.new("UICorner", openButton).CornerRadius = UDim.new(0.5, 0)
 
--- Frame principal
 local mainFrame = Instance.new("Frame", listGui)
 mainFrame.Size = UDim2.new(0, 220, 0, 300)
 mainFrame.Position = UDim2.new(0, -230, 0.5, -150)
@@ -69,7 +67,6 @@ mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 mainFrame.Visible = false
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
--- Botão fechar
 local closeButton = Instance.new("TextButton", mainFrame)
 closeButton.Size = UDim2.new(0, 30, 0, 30)
 closeButton.Position = UDim2.new(1, -35, 0, 10)
@@ -80,7 +77,6 @@ closeButton.Font = Enum.Font.GothamBold
 closeButton.TextScaled = true
 Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0.5, 0)
 
--- Título
 local titleLabel = Instance.new("TextLabel", mainFrame)
 titleLabel.Size = UDim2.new(1, -40, 0, 30)
 titleLabel.Position = UDim2.new(0, 10, 0, 10)
@@ -91,7 +87,6 @@ titleLabel.Font = Enum.Font.GothamBold
 titleLabel.TextSize = 18
 titleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- Lista
 local scrollFrame = Instance.new("ScrollingFrame", mainFrame)
 scrollFrame.Size = UDim2.new(1, -20, 1, -50)
 scrollFrame.Position = UDim2.new(0, 10, 0, 40)
@@ -173,10 +168,19 @@ local function TrollPlayer()
         hum:EquipTool(tool)
     end
 
-    -- Rodar abaixo do player alvo
-    local rotating = true
+    -- Rotação enquanto Couch estiver equipada
+    local spinning = true
     local rotationConn
     rotationConn = RunService.Heartbeat:Connect(function()
+        if spinning and char and tool and tool.Parent == char then
+            root.CFrame = root.CFrame * CFrame.Angles(0, math.rad(10), 0)
+        end
+    end)
+
+    -- Rodar abaixo do player alvo
+    local rotating = true
+    local targetSpinConn
+    targetSpinConn = RunService.Heartbeat:Connect(function()
         if rotating and char and tRoot then
             local angle = tick() * 190
             local radius = 3
@@ -184,7 +188,7 @@ local function TrollPlayer()
         end
     end)
 
-    -- Após 1.6s teleporte
+    -- Teleporte após 1.6s
     task.delay(1.6, function()
         rotating = false
         root.CFrame = CFrame.new(Vector3.new(675,9,482))
@@ -207,9 +211,10 @@ local function TrollPlayer()
         end
     end)
 
-    -- Voltar depois de 3s e só aí desequipar Couch
+    -- Voltar depois de 3s e desequipar Couch
     task.delay(3, function()
         root.CFrame = CFrame.new(originalPos)
+        spinning = false
         if tool and tool.Parent == char then
             tool.Parent = LocalPlayer.Backpack
         end
