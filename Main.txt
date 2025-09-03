@@ -2,11 +2,15 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- GUI simples
+------------------------
+-- GUI Trollar
+------------------------
 local screenGui = Instance.new("ScreenGui", PlayerGui)
+screenGui.Name = "TrollGui"
 screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
@@ -15,8 +19,7 @@ frame.Position = UDim2.new(0.5, -125, 0.5, -50)
 frame.BackgroundColor3 = Color3.fromRGB(25,25,25)
 frame.Active = true
 frame.Draggable = true
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0,12)
+Instance.new("UICorner", frame).CornerRadius = UDim.new(0,12)
 
 local textBox = Instance.new("TextBox", frame)
 textBox.Size = UDim2.new(1,-20,0,35)
@@ -27,8 +30,7 @@ textBox.TextColor3 = Color3.fromRGB(255,255,255)
 textBox.ClearTextOnFocus = false
 textBox.Font = Enum.Font.Gotham
 textBox.TextSize = 16
-local tCorner = Instance.new("UICorner", textBox)
-tCorner.CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", textBox).CornerRadius = UDim.new(0,8)
 
 local button = Instance.new("TextButton", frame)
 button.Size = UDim2.new(1,-20,0,35)
@@ -38,10 +40,113 @@ button.BackgroundColor3 = Color3.fromRGB(255,255,255)
 button.TextColor3 = Color3.fromRGB(25,25,25)
 button.Font = Enum.Font.GothamBold
 button.TextSize = 16
-local bCorner = Instance.new("UICorner", button)
-bCorner.CornerRadius = UDim.new(0,8)
+Instance.new("UICorner", button).CornerRadius = UDim.new(0,8)
 
+------------------------
+-- GUI Lista de Players
+------------------------
+local listGui = Instance.new("ScreenGui", PlayerGui)
+listGui.Name = "CompactPlayerList"
+listGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Botão "Abrir >"
+local openButton = Instance.new("TextButton")
+openButton.Size = UDim2.new(0, 30, 0, 30)
+openButton.Position = UDim2.new(0, 10, 0.5, -15)
+openButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+openButton.Text = ">"
+openButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+openButton.Font = Enum.Font.GothamBold
+openButton.TextScaled = true
+openButton.Parent = listGui
+Instance.new("UICorner", openButton).CornerRadius = UDim.new(0.5, 0)
+
+-- Frame principal
+local mainFrame = Instance.new("Frame", listGui)
+mainFrame.Size = UDim2.new(0, 220, 0, 300)
+mainFrame.Position = UDim2.new(0, -230, 0.5, -150)
+mainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+mainFrame.Visible = false
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+
+-- Botão fechar
+local closeButton = Instance.new("TextButton", mainFrame)
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 10)
+closeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+closeButton.Text = "<"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextScaled = true
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0.5, 0)
+
+-- Título
+local titleLabel = Instance.new("TextLabel", mainFrame)
+titleLabel.Size = UDim2.new(1, -40, 0, 30)
+titleLabel.Position = UDim2.new(0, 10, 0, 10)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Lista de Players"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextSize = 18
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Lista
+local scrollFrame = Instance.new("ScrollingFrame", mainFrame)
+scrollFrame.Size = UDim2.new(1, -20, 1, -50)
+scrollFrame.Position = UDim2.new(0, 10, 0, 40)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollBarThickness = 6
+scrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Instance.new("UICorner", scrollFrame).CornerRadius = UDim.new(0, 8)
+
+local listLayout = Instance.new("UIListLayout", scrollFrame)
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 2)
+
+local function createPlayerItem(pObj)
+    local button = Instance.new("TextButton", scrollFrame)
+    button.Size = UDim2.new(1, -10, 0, 30)
+    button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    button.Text = pObj.DisplayName .. " (@" .. pObj.Name .. ")"
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.Gotham
+    button.TextSize = 14
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 6)
+
+    button.MouseButton1Click:Connect(function()
+        textBox.Text = pObj.Name
+    end)
+end
+
+local function updatePlayerList()
+    for _, child in ipairs(scrollFrame:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    for _, p in ipairs(Players:GetPlayers()) do
+        createPlayerItem(p)
+    end
+end
+
+updatePlayerList()
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
+
+openButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    TweenService:Create(mainFrame, TweenInfo.new(0.3), {Position = UDim2.new(0, 10, 0.5, -150)}):Play()
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    TweenService:Create(mainFrame, TweenInfo.new(0.3), {Position = UDim2.new(0, -230, 0.5, -150)}):Play()
+    task.wait(0.3)
+    mainFrame.Visible = false
+end)
+
+------------------------
 -- Função Trollar
+------------------------
 local function TrollPlayer()
     local targetName = textBox.Text
     if targetName == "" then warn("Digite o nome do jogador!") return end
@@ -52,13 +157,12 @@ local function TrollPlayer()
     local hum = char:WaitForChild("Humanoid")
     local root = char:WaitForChild("HumanoidRootPart")
     local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
-    local tHum = target.Character:FindFirstChild("Humanoid")
-    if not tRoot or not tHum then return end
+    if not tRoot then return end
 
     local originalPos = root.Position
     local RE = ReplicatedStorage:WaitForChild("RE")
 
-    -- Limpar ferramentas e pegar Couch
+    -- Pegar Couch
     RE:WaitForChild("1Clea1rTool1s"):FireServer("ClearAllTools")
     task.wait(0.2)
     RE:WaitForChild("1Too1l"):InvokeServer("PickingTools", "Couch")
@@ -69,24 +173,23 @@ local function TrollPlayer()
         hum:EquipTool(tool)
     end
 
-    -- Spin grudado abaixo do jogador (altura dos pés)
+    -- Rodar abaixo do player alvo
     local rotating = true
-    local rotateSpeed = 190
     local rotationConn
     rotationConn = RunService.Heartbeat:Connect(function()
         if rotating and char and tRoot then
-            local angle = tick() * rotateSpeed
+            local angle = tick() * 190
             local radius = 3
-            root.CFrame = tRoot.CFrame * CFrame.new(math.cos(angle)*radius, -2, math.sin(angle)*radius) * CFrame.Angles(0, math.rad(angle), 0)
+            root.CFrame = tRoot.CFrame * CFrame.new(math.cos(angle)*radius, -2, math.sin(angle)*radius)
         end
     end)
 
-    -- Teleporte para coordenada após 1,2 segundos
-    task.delay(1.2, function()
+    -- Após 1.6s teleporte
+    task.delay(1.6, function()
         rotating = false
         root.CFrame = CFrame.new(Vector3.new(675,9,482))
 
-        -- Aplicar crazyVector no alvo
+        -- CrazyVector no alvo
         if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local crazyVector = Vector3.new(
                 math.random(1e14, 1e15),
@@ -98,51 +201,18 @@ local function TrollPlayer()
                 [2] = target.Character.HumanoidRootPart,
                 [3] = crazyVector,
                 [4] = target.Character.HumanoidRootPart.Position,
-                [5] = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local") and LocalPlayer.Backpack.Assault.GunScript_Local:FindFirstChild("MuzzleEffect"),
-                [6] = LocalPlayer.Backpack:FindFirstChild("Assault") and LocalPlayer.Backpack.Assault:FindFirstChild("GunScript_Local") and LocalPlayer.Backpack.Assault.GunScript_Local:FindFirstChild("HitEffect"),
-                [7] = 0,
-                [8] = 0,
-                [9] = { [1] = false },
-                [10] = {
-                    [1] = 25,
-                    [2] = Vector3.new(100,100,100),
-                    [3] = BrickColor.new(29),
-                    [4] = 0.25,
-                    [5] = Enum.Material.SmoothPlastic,
-                    [6] = 0.25
-                },
-                [11] = true,
-                [12] = false
             }
-            local remote = RE:FindFirstChild("SomeRemote") -- Substituir pelo Remote correto
-            if remote then
-                remote:FireServer(unpack(args))
-            end
-        end
-
-        -- Loop 5s equipando/desequipando Couch
-        if tool then
-            local startTime = tick()
-            while tick() - startTime < 5 do
-                if tool.Parent == char then
-                    tool.Parent = LocalPlayer.Backpack
-                else
-                    tool.Parent = char
-                    hum:EquipTool(tool)
-                end
-                task.wait(0.3)
-            end
-        end
-
-        -- Garantir que Couch fique na backpack no final
-        if tool and tool.Parent == char then
-            tool.Parent = LocalPlayer.Backpack
+            local remote = RE:FindFirstChild("SomeRemote") -- ajuste para o remote certo
+            if remote then remote:FireServer(unpack(args)) end
         end
     end)
 
-    -- Voltar para posição original após 3s
+    -- Voltar depois de 3s e só aí desequipar Couch
     task.delay(3, function()
         root.CFrame = CFrame.new(originalPos)
+        if tool and tool.Parent == char then
+            tool.Parent = LocalPlayer.Backpack
+        end
     end)
 end
 
